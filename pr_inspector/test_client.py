@@ -7,7 +7,7 @@ from fastmcp import Client
 async def main():
     """Test the MCP server by calling the say_hello tool."""
     print("🚀 Connecting to MCP server...")
-    print("   Make sure the server is running: uv run python server.py\n")
+    print("   Make sure the server is running: uv run python -m pr_inspector.server\n")
     
     # Connect to the HTTP server (should be running on http://127.0.0.1:8000/mcp)
     client = Client("http://127.0.0.1:8000/mcp")
@@ -46,7 +46,7 @@ async def main():
     except Exception as e:
         print(f"❌ Error connecting to server: {e}")
         print("\n💡 Make sure the server is running first:")
-        print("   uv run python server.py")
+        print("   uv run python -m pr_inspector.server")
         raise
 
 
