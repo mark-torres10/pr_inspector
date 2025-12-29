@@ -39,6 +39,19 @@ class OpenAIService:
         )
 
 
+# Provider function for dependency injection
+_openai_service_instance: OpenAIService | None = None
+
+
+def get_openai_service() -> OpenAIService:
+    """Dependency provider for OpenAI service."""
+    global _openai_service_instance
+    if _openai_service_instance is None:
+        _openai_service_instance = OpenAIService()
+        _openai_service_instance.authenticate()
+    return _openai_service_instance
+
+
 if __name__ == "__main__":
     # Example usage
     openai_service = OpenAIService()
@@ -51,3 +64,4 @@ if __name__ == "__main__":
     )
     print(response.choices[0].message.content)
 
+ 

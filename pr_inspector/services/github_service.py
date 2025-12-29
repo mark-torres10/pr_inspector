@@ -67,6 +67,19 @@ class GithubService:
         ]
 
 
+# Provider function for dependency injection
+_github_service_instance: GithubService | None = None
+
+
+def get_github_service() -> GithubService:
+    """Dependency provider for GitHub service."""
+    global _github_service_instance
+    if _github_service_instance is None:
+        _github_service_instance = GithubService()
+        _github_service_instance.authenticate()
+    return _github_service_instance
+
+
 if __name__ == "__main__":
     example_pr_link = "https://github.com/METResearchGroup/bluesky-research/pull/273"
     github_service = GithubService()
