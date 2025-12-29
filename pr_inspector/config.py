@@ -2,7 +2,7 @@
 
 import yaml
 from pathlib import Path
-from typing import dict, Any
+from typing import Any
 
 
 def load_config(config_path: str = "config.yaml") -> dict[str, Any]:
