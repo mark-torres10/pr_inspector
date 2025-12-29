@@ -2,10 +2,10 @@
 
 import yaml
 from pathlib import Path
-from typing import Dict, Any
+from typing import dict, Any
 
 
-def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
+def load_config(config_path: str = "config.yaml") -> dict[str, Any]:
     """
     Load configuration from a YAML file.
     
@@ -29,7 +29,7 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
     return config
 
 
-def get_server_config(config_path: str = "config.yaml") -> Dict[str, Any]:
+def get_server_config(config_path: str = "config.yaml") -> dict[str, Any]:
     """
     Get server-specific configuration.
     
