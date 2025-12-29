@@ -115,4 +115,4 @@ def create_pr_checklist(
 
 if __name__ == "__main__":
     pr_url = "https://github.com/METResearchGroup/bluesky-research/pull/273"
-    _create_pr_checklist_impl(pr_url)
+    _create_pr_checklist_impl(pr_url, get_github_service(), get_openai_service())
