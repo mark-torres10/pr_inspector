@@ -1,6 +1,7 @@
 """PR Inspector MCP Server - A basic MCP server with hello world endpoint."""
 
 from fastmcp import FastMCP
+from config import get_server_config
 
 # Create the MCP server instance
 mcp = FastMCP("PR Inspector Server")
@@ -21,4 +22,12 @@ def say_hello(name: str = "World") -> str:
 
 
 if __name__ == "__main__":
-    mcp.run()
+    # Load server configuration from config.yaml
+    server_config = get_server_config()
+    
+    # Run the server with configuration from config.yaml
+    mcp.run(
+        transport=server_config["transport"],
+        host=server_config["host"],
+        port=server_config["port"]
+    )
