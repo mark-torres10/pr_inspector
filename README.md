@@ -22,6 +22,10 @@ This project uses `uv` for dependency management. To set up the environment:
 
 4. Run the MCP server (in one terminal):
    ```bash
+   # Option 1: Using the console script (recommended)
+   uv run pr-inspector
+   
+   # Option 2: Using Python module syntax
    uv run python -m pr_inspector.server
    ```
    
@@ -33,7 +37,7 @@ To test the MCP server and verify it's working:
 
 1. **First, start the server** (in one terminal):
    ```bash
-   uv run python -m pr_inspector.server
+   uv run pr-inspector
    ```
    The server will start on `http://127.0.0.1:8000/mcp`
 
