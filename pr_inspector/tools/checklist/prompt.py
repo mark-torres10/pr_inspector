@@ -1,7 +1,7 @@
 from langchain_core.prompts import PromptTemplate
 
 checklist_prompt_template = PromptTemplate(
-    input_variables=["pr_details"],
+    input_variables=["checklist_template", "pr_details"],
     template="""
 You are an expert code reviewer. Generate a comprehensive checklist.
 

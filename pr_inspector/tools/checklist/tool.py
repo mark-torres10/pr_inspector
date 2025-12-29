@@ -19,8 +19,13 @@ from pr_inspector.tools.checklist.prompt import checklist_prompt_template, check
 
 
 def generate_prompt(pr_details: PrDetails) -> str:
-  # TODO: fix up.
-    return checklist_prompt_template.format(checklist_template=checklist_template, pr_details=pr_details)
+    """Generate the prompt by formatting the template with checklist template and PR details."""
+    # Convert PrDetails object to string representation
+    pr_details_str = str(pr_details)
+    return checklist_prompt_template.format(
+        checklist_template=checklist_template,
+        pr_details=pr_details_str
+    )
 
 
 def generate_response(

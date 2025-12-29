@@ -4,7 +4,7 @@ from openai import OpenAI
 
 from pr_inspector.env_loader import fetch_env_variable
 
-DEFAULT_MODEL = "gpt-4o-mini"
+DEFAULT_MODEL = "gpt-4o-mini-2024-07-18"
 
 class OpenAIService:
     """OpenAI service for making API requests."""
