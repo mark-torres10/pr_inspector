@@ -1,5 +1,6 @@
 """Tool for creating PR review checklists."""
 
+import json
 from fastmcp.dependencies import Depends
 
 from pr_inspector.mcp_instance import mcp
@@ -11,71 +12,57 @@ from pr_inspector.services.github_service import (
 from pr_inspector.services.openai_service import (
     OpenAIService,
     get_openai_service,
+    DEFAULT_MODEL,
 )
+from pr_inspector.tools.checklist.models import ChecklistOutput
+from pr_inspector.tools.checklist.prompt import checklist_prompt_template, checklist_template
 
-prompt = """
-
-You are an expert code reviewer. You are given details of a Github pull request.
-
-You are to generate a checklist of items that should be reviewed for the pull request.
-
-The checklist should following the following format:
-
-{checklist_template}
-
-The details of the pull request are as follows:
-
-{pr_details}
-
-Please generate a checklist of items that should be reviewed for the pull request.
-
-"""
-
-checklist_template = """
-- [ ] **Key Files & Review Order**  
-  - List the key files to examine.  
-  - Specify the order and why it matters.  
-  - *Example:* “Start with `config.py` (sets constants), then `database.py` (schema), then `api.py` (uses both).”
-
-- [ ] **Per-File Notes**  
-  For each file, provide:  
-  - [ ] Purpose and role in the system.  
-    - *Example:* “`handlers.py` manages HTTP routes → business logic.”  
-  - [ ] Critical sections to inspect (functions, classes, blocks).  
-    - *Example:* “Check `UserManager.create_user()` — touches DB, hashing, validation.”  
-  - [ ] Pitfalls or tricky logic.  
-    - *Example:* “Pagination in `query_posts()` — check for off-by-one errors.”  
-  - [ ] Dependencies or external assumptions.  
-    - *Example:* “Assumes Redis always available — no retry logic.”
-
-- [ ] **Cross-Cutting Concerns**  
-  - Highlight design patterns, abstractions, or conventions that span files.  
-  - Call out areas needing consistency (e.g., error handling, logging, API contracts).  
-  - *Example:* “Ensure `api.py` and `tasks.py` return errors in the same JSON format.”
-
-- [ ] **Testing & Validation**  
-  - [ ] Which files contain tests and what's covered.  
-  - [ ] What scenarios or edge cases are missing.  
-  - [ ] Suggested manual or integration checks.  
-  - *Example:* “`test_models.py` covers user creation, but missing duplicate email case.”  
-  - *Example:* “Manually test concurrent writes to `update_balance()` for race conditions.”
-
-- [ ] **Risks & Tradeoffs**  
-  - [ ] Known fragile areas or compromises.  
-  - [ ] Potential security, performance, scalability, or maintainability issues.  
-  - *Example:* “Blocking DB calls may cause performance issues under load.”  
-  - *Example:* “Password hashing with SHA256 instead of bcrypt — security risk.”
-
-- [ ] **Context**  
-  - [ ] Background assumptions, constraints, or design decisions.  
-  - [ ] Style/architectural conventions to keep in mind.  
-  - *Example:* “Using SQLite now, but schema designed for Postgres compatibility.”  
-  - *Example:* “PEP8 + Google docstrings are expected.”
-"""
 
 def generate_prompt(pr_details: PrDetails) -> str:
-    breakpoint()
-    return prompt.format(checklist_template=checklist_template, pr_details=pr_details)
+  # TODO: fix up.
+    return checklist_prompt_template.format(checklist_template=checklist_template, pr_details=pr_details)
+
+
+def generate_response(
+  prompt: str,
+  openai_service: OpenAIService,
+  model: str | None,
+  output_schema: dict
+) -> ChecklistOutput:
+    if model is None:
+        model = DEFAULT_MODEL
+    response: str = openai_service.chat_completion(
+      messages=[{"role": "system", "content": prompt}],
+      model=model,
+      response_format={
+          "type": "json_schema",
+          "json_schema": {
+              "name": "checklist_output",
+              "strict": True,  # Enforces strict schema compliance
+              "schema": output_schema
+          }
+      }
+    )
+    content: str = response.choices[0].message.content
+    json_data = json.loads(content)
+    return ChecklistOutput(**json_data)
+
+
+def transform_response_to_markdown(response: ChecklistOutput) -> str:
+    markdown = f"# Checklist for PR: {pr_url}\n\n"
+    markdown += f"## Key Files & Review Order\n\n"
+    markdown += f"{response.key_files_and_review_order}\n\n"
+    markdown += f"## Per-File Notes\n\n"
+    markdown += f"{response.per_file_notes}\n\n"
+    markdown += f"## Cross-Cutting Concerns\n\n"
+    markdown += f"{response.cross_cutting_concerns}\n\n"
+    markdown += f"## Testing & Validation\n\n"
+    markdown += f"{response.testing_and_validation}\n\n"
+    markdown += f"## Risks & Tradeoffs\n\n"
+    markdown += f"{response.risks_and_tradeoffs}\n\n"
+    markdown += f"## Context\n\n"
+    markdown += f"{response.context}\n\n"
+    return markdown
 
 
 def _create_pr_checklist_impl(
@@ -101,7 +88,8 @@ def _create_pr_checklist_impl(
     """
     pr_details: PrDetails = github_service.fetch_pr_details(pr_url)
     prompt: str = generate_prompt(pr_details)
-    return f"Checklist for PR: {pr_url}"
+    output: ChecklistOutput = generate_response(prompt, openai_service, output_schema=ChecklistOutput.model_json_schema())
+    return transform_response_to_markdown(output)
 
 
 @mcp.tool()

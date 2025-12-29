@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from pydantic.json_schema import model_json_schema
+
 
 class PerFileNote(BaseModel):
     file_name: str
@@ -14,3 +16,8 @@ class ChecklistOutput(BaseModel):
     testing_and_validation: dict
     risks_and_tradeoffs: list[str]
     context: str
+
+def get_json_schema_from_pydantic(model: type[BaseModel]) -> dict:
+    """Convert Pydantic model to JSON Schema for OpenAI."""
+    schema, _ = model_json_schema(model)
+    return schema
