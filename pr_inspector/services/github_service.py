@@ -46,8 +46,7 @@ class GithubService:
         """)
         repo: Repository = self.github_client.get_repo(f"{org_name}/{repo_name}")
         pr: PullRequest = repo.get_pull(pr_number)
-        paginated_files: PaginatedList = pr.get_files()
-        pr_files: list[PrFile] = self.create_pr_files(paginated_files)
+        pr_files: list[PrFile] = self.get_pr_files(pr)
         return PrDetails(
             org_name=org_name,
             repo_name=repo_name,
@@ -57,12 +56,13 @@ class GithubService:
             pr_files=pr_files,
         )
 
-    def create_pr_files(self, files: PaginatedList) -> list[PrFile]:
+    def get_pr_files(self, pr: PullRequest) -> list[PrFile]:
         """Given the paginated list of files from the Github API, create the
         internal representation of the files."""
+        paginated_files: PaginatedList = pr.get_files()
         return [
             PrFile(file_name=file.filename, file_diff=file.patch)
-            for file in files
+            for file in paginated_files
             if file.patch is not None # can happen if file is binary or too large.
         ]
 
