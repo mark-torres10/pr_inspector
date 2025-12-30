@@ -1,5 +1,7 @@
 """Service for interacting with the OpenAI API."""
 
+import threading
+
 from openai import OpenAI
 
 from pr_inspector.env_loader import fetch_env_variable
@@ -42,14 +44,17 @@ class OpenAIService:
 
 # Provider function for dependency injection
 _openai_service_instance: OpenAIService | None = None
+_openai_service_lock = threading.Lock()
 
 
 def get_openai_service() -> OpenAIService:
     """Dependency provider for OpenAI service."""
     global _openai_service_instance
     if _openai_service_instance is None:
-        _openai_service_instance = OpenAIService()
-        _openai_service_instance.authenticate()
+        with _openai_service_lock:
+            if _openai_service_instance is None:
+                _openai_service_instance = OpenAIService()
+                _openai_service_instance.authenticate()
     return _openai_service_instance
 
 

@@ -1,5 +1,7 @@
 """Service for interacting with the GitHub API."""
 
+import logging
+import threading
 from dataclasses import dataclass
 
 from github import Github, Auth
@@ -9,7 +11,6 @@ from github.Repository import Repository
 
 from pr_inspector.env_loader import fetch_env_variable
 
-import logging
 logger = logging.getLogger(__name__)
 
 MAX_DIFF_LENGTH = 1000
@@ -95,14 +96,17 @@ class GithubService:
 
 # Provider function for dependency injection
 _github_service_instance: GithubService | None = None
+_github_service_lock = threading.Lock()
 
 
 def get_github_service() -> GithubService:
     """Dependency provider for GitHub service."""
     global _github_service_instance
     if _github_service_instance is None:
-        _github_service_instance = GithubService()
-        _github_service_instance.authenticate()
+        with _github_service_lock:
+            if _github_service_instance is None:
+                _github_service_instance = GithubService()
+                _github_service_instance.authenticate()
     return _github_service_instance
 
 
