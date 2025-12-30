@@ -98,7 +98,12 @@ def _create_pr_checklist_impl(
     """
     pr_details: PrDetails = github_service.fetch_pr_details(pr_url)
     prompt: str = generate_prompt(pr_details)
-    output: ChecklistOutput = generate_response(prompt, openai_service, output_schema=ChecklistOutput.model_json_schema())
+    output: ChecklistOutput = generate_response(
+        prompt=prompt,
+        openai_service=openai_service,
+        model=DEFAULT_MODEL,
+        output_schema=ChecklistOutput.model_json_schema()
+    )
     return transform_response_to_markdown(output)
 
 
@@ -113,4 +118,6 @@ def create_pr_checklist(
 
 if __name__ == "__main__":
     pr_url = "https://github.com/METResearchGroup/bluesky-research/pull/273"
-    _create_pr_checklist_impl(pr_url, get_github_service(), get_openai_service())
+    markdown_response = _create_pr_checklist_impl(pr_url, get_github_service(), get_openai_service())
+    print(markdown_response)
+    breakpoint()
