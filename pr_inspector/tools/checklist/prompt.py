@@ -7,11 +7,23 @@ You are an expert code reviewer. Generate a comprehensive checklist.
 
 The checklist should following the following format:
 
+##################
+CHECKLIST TEMPLATE
+##################
+
 {checklist_template}
+
+##################
+PR DETAILS
+##################
 
 The details of the pull request are as follows:
 
 {pr_details}
+
+##################
+INSTRUCTIONS
+##################
 
 Please generate a checklist of items that should be reviewed for the pull request.
 
