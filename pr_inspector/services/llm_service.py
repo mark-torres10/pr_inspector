@@ -1,14 +1,41 @@
 """Service for interacting with LLM providers via LiteLLM."""
 
+import copy
 import threading
 
 import litellm
-from litellm.types.completion import Completion
+from litellm import ModelResponse
 from pydantic import BaseModel
 
 from pr_inspector.env_loader import fetch_env_variable
 
 DEFAULT_MODEL = "gpt-4o-mini-2024-07-18"
+
+
+def _fix_schema_for_openai(schema: dict) -> dict:
+    """
+    Recursively add additionalProperties: false to all object definitions.
+    
+    OpenAI's structured outputs require all object types to have
+    additionalProperties: false explicitly set.
+    """
+    schema_copy = copy.deepcopy(schema)
+    
+    def patch(obj: dict) -> None:
+        if isinstance(obj, dict):
+            if obj.get("type") == "object":
+                obj["additionalProperties"] = False
+            # Recursively patch nested objects
+            for value in obj.values():
+                if isinstance(value, dict):
+                    patch(value)
+                elif isinstance(value, list):
+                    for item in value:
+                        if isinstance(item, dict):
+                            patch(item)
+    
+    patch(schema_copy)
+    return schema_copy
 
 
 class LLMService:
@@ -25,19 +52,44 @@ class LLMService:
         model: str = DEFAULT_MODEL,
         response_format: type[BaseModel] | None = None,
         **kwargs
-    ) -> Completion:
+    ) -> ModelResponse:
         """
         Create a chat completion request.
         
         Args:
             messages: List of message dicts with 'role' and 'content' keys
             model: Model to use (default: gpt-4o-mini-2024-07-18)
-            response_format: Pydantic model class for structured outputs (litellm handles schema conversion)
+            response_format: Pydantic model class for structured outputs
             **kwargs: Additional parameters to pass to the API (temperature, max_tokens, etc.)
         
         Returns:
             The chat completion response from litellm
         """
+        # If response_format is a Pydantic model, we need to fix the schema
+        # to add additionalProperties: false for OpenAI compatibility
+        if response_format is not None:
+            schema = response_format.model_json_schema()
+            # NOTE: later on, we'll see if there's a better way to do this.
+            # Right now, looks like OpenAI is annoyingly strict with their schema
+            # and I haven't found a better way to do this.
+            fixed_schema = _fix_schema_for_openai(schema)
+
+            # Convert to OpenAI's structured output format
+            response_format_dict = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": response_format.__name__.lower(),
+                    "strict": True,
+                    "schema": fixed_schema
+                }
+            }
+            return litellm.completion(
+                model=model,
+                messages=messages,
+                response_format=response_format_dict,
+                **kwargs
+            )
+        
         return litellm.completion(
             model=model,
             messages=messages,

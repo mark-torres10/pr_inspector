@@ -64,24 +64,101 @@ def generate_response(
 
 def transform_response_to_markdown(response: ChecklistOutput) -> str:
     markdown = f"# Checklist for PR:\n\n"
+    
+    # Key Files & Review Order
     markdown += f"## Key Files & Review Order\n\n"
-    markdown += f"{response.key_files_and_review_order}\n\n"
+    key_files = response.key_files_and_review_order
+    markdown += f"{key_files.overall_approach}\n\n"
+    for file_review in sorted(key_files.files, key=lambda x: x.order):
+        markdown += f"{file_review.order}. **{file_review.file_name}**\n"
+        markdown += f"   - {file_review.reason}\n"
+    markdown += "\n"
+    
+    # Per-File Notes
     markdown += f"## Per-File Notes\n\n"
     for per_file_note in response.per_file_notes:
-        markdown += f"- {per_file_note.file_name}\n"
+        markdown += f"- **{per_file_note.file_name}**\n"
         markdown += f"  - Purpose: {per_file_note.purpose}\n"
-        markdown += f"  - Critical sections: {per_file_note.critical_sections}\n"
-        markdown += f"  - Pitfalls: {per_file_note.pitfalls}\n"
-        markdown += f"  - Dependencies: {per_file_note.dependencies}\n"
-        markdown += f"\n"
+        if per_file_note.critical_sections:
+            markdown += f"  - Critical sections:\n"
+            for section in per_file_note.critical_sections:
+                markdown += f"    - {section}\n"
+        if per_file_note.pitfalls:
+            markdown += f"  - Pitfalls:\n"
+            for pitfall in per_file_note.pitfalls:
+                markdown += f"    - {pitfall}\n"
+        if per_file_note.dependencies:
+            markdown += f"  - Dependencies:\n"
+            for dep in per_file_note.dependencies:
+                markdown += f"    - {dep}\n"
+        markdown += "\n"
+    
+    # Cross-Cutting Concerns
     markdown += f"## Cross-Cutting Concerns\n\n"
-    markdown += f"{response.cross_cutting_concerns}\n\n"
+    concerns = response.cross_cutting_concerns
+    markdown += f"{concerns.summary}\n\n"
+    for concern in concerns.concerns:
+        markdown += f"- **{concern.concern_type}**\n"
+        markdown += f"  - Description: {concern.description}\n"
+        if concern.affected_files:
+            markdown += f"  - Affected files: {', '.join(concern.affected_files)}\n"
+        if concern.consistency_notes:
+            markdown += f"  - Consistency notes: {concern.consistency_notes}\n"
+    markdown += "\n"
+    
+    # Testing & Validation
     markdown += f"## Testing & Validation\n\n"
-    markdown += f"{response.testing_and_validation}\n\n"
+    testing = response.testing_and_validation
+    if testing.files_tests_covered:
+        markdown += f"- **Files/Tests Covered:**\n"
+        for file in testing.files_tests_covered:
+            markdown += f"  - {file}\n"
+    if testing.missing_scenarios:
+        markdown += f"- **Missing Scenarios:**\n"
+        for scenario in testing.missing_scenarios:
+            markdown += f"  - {scenario}\n"
+    if testing.manual_checks:
+        markdown += f"- **Manual Checks:**\n"
+        for check in testing.manual_checks:
+            markdown += f"  - {check}\n"
+    markdown += "\n"
+    
+    # Risks & Tradeoffs
     markdown += f"## Risks & Tradeoffs\n\n"
-    markdown += f"{response.risks_and_tradeoffs}\n\n"
+    risks = response.risks_and_tradeoffs
+    markdown += f"{risks.summary}\n\n"
+    for risk in risks.risks:
+        markdown += f"- **[{risk.category.upper()}] {risk.description}**\n"
+        markdown += f"  - Severity: {risk.severity}\n"
+        if risk.affected_areas:
+            markdown += f"  - Affected areas: {', '.join(risk.affected_areas)}\n"
+    markdown += "\n"
+    
+    # Context
     markdown += f"## Context\n\n"
-    markdown += f"{response.context}\n\n"
+    context = response.context
+    if context.background_assumptions:
+        markdown += f"- **Background Assumptions:**\n"
+        for assumption in context.background_assumptions:
+            markdown += f"  - {assumption}\n"
+    if context.constraints:
+        markdown += f"- **Constraints:**\n"
+        for constraint in context.constraints:
+            markdown += f"  - {constraint}\n"
+    if context.design_decisions:
+        markdown += f"- **Design Decisions:**\n"
+        for decision in context.design_decisions:
+            markdown += f"  - {decision}\n"
+    if context.style_conventions:
+        markdown += f"- **Style Conventions:**\n"
+        for convention in context.style_conventions:
+            markdown += f"  - {convention}\n"
+    if context.architectural_conventions:
+        markdown += f"- **Architectural Conventions:**\n"
+        for convention in context.architectural_conventions:
+            markdown += f"  - {convention}\n"
+    markdown += "\n"
+    
     return markdown
 
 
