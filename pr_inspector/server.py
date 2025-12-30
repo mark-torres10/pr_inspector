@@ -1,11 +1,10 @@
 """PR Inspector MCP Server - A basic MCP server with hello world endpoint."""
 
-from fastmcp import FastMCP
 from pr_inspector.config import get_server_config
+from pr_inspector.mcp_instance import mcp
 
-# Create the MCP server instance
-mcp = FastMCP("PR Inspector Server")
-
+# Import tools to register them with MCP
+from pr_inspector.tools.checklist.tool import create_pr_checklist  # noqa: F401
 
 @mcp.tool()
 def say_hello(name: str = "World") -> str:
