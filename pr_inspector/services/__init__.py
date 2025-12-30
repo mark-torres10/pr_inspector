@@ -6,9 +6,9 @@ from pr_inspector.services.github_service import (
     PrFile,
     get_github_service,
 )
-from pr_inspector.services.openai_service import (
-    OpenAIService,
-    get_openai_service,
+from pr_inspector.services.llm_service import (
+    LLMService,
+    get_llm_service,
 )
 
 __all__ = [
@@ -16,7 +16,7 @@ __all__ = [
     "PrDetails",
     "PrFile",
     "get_github_service",
-    "OpenAIService",
-    "get_openai_service",
+    "LLMService",
+    "get_llm_service",
 ]
 

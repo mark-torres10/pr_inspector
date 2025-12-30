@@ -3,7 +3,6 @@
 import json
 
 from fastmcp.dependencies import Depends
-from openai.types.chat import ChatCompletion
 
 from pr_inspector.mcp_instance import mcp
 from pr_inspector.services.github_service import (
@@ -11,9 +10,9 @@ from pr_inspector.services.github_service import (
     get_github_service,
     PrDetails,
 )
-from pr_inspector.services.openai_service import (
-    OpenAIService,
-    get_openai_service,
+from pr_inspector.services.llm_service import (
+    LLMService,
+    get_llm_service,
     DEFAULT_MODEL,
 )
 from pr_inspector.tools.checklist.models import ChecklistOutput
@@ -30,27 +29,35 @@ def generate_prompt(pr_details: PrDetails) -> str:
 
 
 def generate_response(
-  prompt: str,
-  openai_service: OpenAIService,
-  model: str | None,
-  output_schema: dict
+    prompt: str,
+    llm_service: LLMService,
+    model: str | None,
 ) -> ChecklistOutput:
+    """
+    Generate a structured response from the LLM using the ChecklistOutput Pydantic model.
+    
+    Args:
+        prompt: The prompt to send to the LLM
+        llm_service: The LLM service instance
+        model: Model name to use (defaults to DEFAULT_MODEL if None)
+    
+    Returns:
+        ChecklistOutput instance parsed from LLM response
+    """
     if model is None:
         model = DEFAULT_MODEL
 
-    response: ChatCompletion = openai_service.chat_completion(
-      messages=[{"role": "user", "content": prompt}],
-      model=model,
-      response_format={
-          "type": "json_schema",
-          "json_schema": {
-              "name": "checklist_output",
-              "strict": True,  # Enforces strict schema compliance
-              "schema": output_schema
-          }
-      }
+    # Pass the Pydantic model class directly - litellm handles schema conversion
+    response = llm_service.chat_completion(
+        messages=[{"role": "user", "content": prompt}],
+        model=model,
+        response_format=ChecklistOutput  # litellm handles schema conversion automatically
     )
+    
+    # Extract content from litellm response (same structure as OpenAI)
     content: str = response.choices[0].message.content
+    
+    # Parse JSON and create ChecklistOutput instance
     json_data = json.loads(content)
     return ChecklistOutput(**json_data)
 
@@ -81,7 +88,7 @@ def transform_response_to_markdown(response: ChecklistOutput) -> str:
 def _create_pr_checklist_impl(
     pr_url: str,
     github_service: GithubService,
-    openai_service: OpenAIService,
+    llm_service: LLMService,
 ) -> str:
     """
     Creates a comprehensive code review checklist customized for a specific GitHub PR.
@@ -94,7 +101,7 @@ def _create_pr_checklist_impl(
     Args:
         pr_url: Full GitHub PR URL (e.g., "https://github.com/owner/repo/pull/123")
         github_service: Injected GitHub service (not part of MCP signature)
-        openai_service: Injected OpenAI service (not part of MCP signature)
+        llm_service: Injected LLM service (not part of MCP signature)
     
     Returns:
         Markdown-formatted checklist string, or error message if fetch fails
@@ -103,9 +110,8 @@ def _create_pr_checklist_impl(
     prompt: str = generate_prompt(pr_details)
     output: ChecklistOutput = generate_response(
         prompt=prompt,
-        openai_service=openai_service,
+        llm_service=llm_service,
         model=DEFAULT_MODEL,
-        output_schema=ChecklistOutput.model_json_schema()
     )
     return transform_response_to_markdown(output)
 
@@ -114,13 +120,13 @@ def _create_pr_checklist_impl(
 def create_pr_checklist(
     pr_url: str,
     github_service: GithubService = Depends(get_github_service),
-    openai_service: OpenAIService = Depends(get_openai_service),
+    llm_service: LLMService = Depends(get_llm_service),
 ) -> str:
     """Generate a comprehensive code review checklist for a specific GitHub PR."""
-    return _create_pr_checklist_impl(pr_url, github_service, openai_service)
+    return _create_pr_checklist_impl(pr_url, github_service, llm_service)
 
 if __name__ == "__main__":
     pr_url = "https://github.com/METResearchGroup/bluesky-research/pull/273"
-    markdown_response = _create_pr_checklist_impl(pr_url, get_github_service(), get_openai_service())
+    markdown_response = _create_pr_checklist_impl(pr_url, get_github_service(), get_llm_service())
     print(markdown_response)
     breakpoint()
