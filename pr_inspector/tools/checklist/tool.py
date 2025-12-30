@@ -1,7 +1,9 @@
 """Tool for creating PR review checklists."""
 
 import json
+
 from fastmcp.dependencies import Depends
+from openai.types.chat import ChatCompletion
 
 from pr_inspector.mcp_instance import mcp
 from pr_inspector.services.github_service import (
@@ -35,7 +37,8 @@ def generate_response(
 ) -> ChecklistOutput:
     if model is None:
         model = DEFAULT_MODEL
-    response: str = openai_service.chat_completion(
+
+    response: ChatCompletion = openai_service.chat_completion(
       messages=[{"role": "user", "content": prompt}],
       model=model,
       response_format={
