@@ -22,6 +22,7 @@ def generate_prompt(pr_details: PrDetails) -> str:
     """Generate the prompt by formatting the template with checklist template and PR details."""
     # Convert PrDetails object to string representation
     pr_details_str = str(pr_details)
+    breakpoint()
     return checklist_prompt_template.format(
         checklist_template=checklist_template,
         pr_details=pr_details_str
@@ -37,7 +38,7 @@ def generate_response(
     if model is None:
         model = DEFAULT_MODEL
     response: str = openai_service.chat_completion(
-      messages=[{"role": "system", "content": prompt}],
+      messages=[{"role": "user", "content": prompt}],
       model=model,
       response_format={
           "type": "json_schema",
