@@ -55,11 +55,17 @@ def generate_response(
 
 
 def transform_response_to_markdown(response: ChecklistOutput) -> str:
-    markdown = f"# Checklist for PR: {pr_url}\n\n"
+    markdown = f"# Checklist for PR:\n\n"
     markdown += f"## Key Files & Review Order\n\n"
     markdown += f"{response.key_files_and_review_order}\n\n"
     markdown += f"## Per-File Notes\n\n"
-    markdown += f"{response.per_file_notes}\n\n"
+    for per_file_note in response.per_file_notes:
+        markdown += f"- {per_file_note.file_name}\n"
+        markdown += f"  - Purpose: {per_file_note.purpose}\n"
+        markdown += f"  - Critical sections: {per_file_note.critical_sections}\n"
+        markdown += f"  - Pitfalls: {per_file_note.pitfalls}\n"
+        markdown += f"  - Dependencies: {per_file_note.dependencies}\n"
+        markdown += f"\n"
     markdown += f"## Cross-Cutting Concerns\n\n"
     markdown += f"{response.cross_cutting_concerns}\n\n"
     markdown += f"## Testing & Validation\n\n"
