@@ -63,10 +63,10 @@ def generate_response(
 
 
 def transform_response_to_markdown(response: ChecklistOutput) -> str:
-    markdown = f"# Checklist for PR:\n\n"
+    markdown = "# Checklist for PR:\n\n"
     
     # Key Files & Review Order
-    markdown += f"## Key Files & Review Order\n\n"
+    markdown += "## Key Files & Review Order\n\n"
     key_files = response.key_files_and_review_order
     markdown += f"{key_files.overall_approach}\n\n"
     for file_review in sorted(key_files.files, key=lambda x: x.order):
@@ -75,26 +75,26 @@ def transform_response_to_markdown(response: ChecklistOutput) -> str:
     markdown += "\n"
     
     # Per-File Notes
-    markdown += f"## Per-File Notes\n\n"
+    markdown += "## Per-File Notes\n\n"
     for per_file_note in response.per_file_notes:
         markdown += f"- **{per_file_note.file_name}**\n"
         markdown += f"  - Purpose: {per_file_note.purpose}\n"
         if per_file_note.critical_sections:
-            markdown += f"  - Critical sections:\n"
+            markdown += "  - Critical sections:\n"
             for section in per_file_note.critical_sections:
                 markdown += f"    - {section}\n"
         if per_file_note.pitfalls:
-            markdown += f"  - Pitfalls:\n"
+            markdown += "  - Pitfalls:\n"
             for pitfall in per_file_note.pitfalls:
                 markdown += f"    - {pitfall}\n"
         if per_file_note.dependencies:
-            markdown += f"  - Dependencies:\n"
+            markdown += "  - Dependencies:\n"
             for dep in per_file_note.dependencies:
                 markdown += f"    - {dep}\n"
         markdown += "\n"
     
     # Cross-Cutting Concerns
-    markdown += f"## Cross-Cutting Concerns\n\n"
+    markdown += "## Cross-Cutting Concerns\n\n"
     concerns = response.cross_cutting_concerns
     markdown += f"{concerns.summary}\n\n"
     for concern in concerns.concerns:
@@ -107,24 +107,24 @@ def transform_response_to_markdown(response: ChecklistOutput) -> str:
     markdown += "\n"
     
     # Testing & Validation
-    markdown += f"## Testing & Validation\n\n"
+    markdown += "## Testing & Validation\n\n"
     testing = response.testing_and_validation
     if testing.files_tests_covered:
-        markdown += f"- **Files/Tests Covered:**\n"
+        markdown += "- **Files/Tests Covered:**\n"
         for file in testing.files_tests_covered:
             markdown += f"  - {file}\n"
     if testing.missing_scenarios:
-        markdown += f"- **Missing Scenarios:**\n"
+        markdown += "- **Missing Scenarios:**\n"
         for scenario in testing.missing_scenarios:
             markdown += f"  - {scenario}\n"
     if testing.manual_checks:
-        markdown += f"- **Manual Checks:**\n"
+        markdown += "- **Manual Checks:**\n"
         for check in testing.manual_checks:
             markdown += f"  - {check}\n"
     markdown += "\n"
     
     # Risks & Tradeoffs
-    markdown += f"## Risks & Tradeoffs\n\n"
+    markdown += "## Risks & Tradeoffs\n\n"
     risks = response.risks_and_tradeoffs
     markdown += f"{risks.summary}\n\n"
     for risk in risks.risks:
@@ -135,26 +135,26 @@ def transform_response_to_markdown(response: ChecklistOutput) -> str:
     markdown += "\n"
     
     # Context
-    markdown += f"## Context\n\n"
+    markdown += "## Context\n\n"
     context = response.context
     if context.background_assumptions:
-        markdown += f"- **Background Assumptions:**\n"
+        markdown += "- **Background Assumptions:**\n"
         for assumption in context.background_assumptions:
             markdown += f"  - {assumption}\n"
     if context.constraints:
-        markdown += f"- **Constraints:**\n"
+        markdown += "- **Constraints:**\n"
         for constraint in context.constraints:
             markdown += f"  - {constraint}\n"
     if context.design_decisions:
-        markdown += f"- **Design Decisions:**\n"
+        markdown += "- **Design Decisions:**\n"
         for decision in context.design_decisions:
             markdown += f"  - {decision}\n"
     if context.style_conventions:
-        markdown += f"- **Style Conventions:**\n"
+        markdown += "- **Style Conventions:**\n"
         for convention in context.style_conventions:
             markdown += f"  - {convention}\n"
     if context.architectural_conventions:
-        markdown += f"- **Architectural Conventions:**\n"
+        markdown += "- **Architectural Conventions:**\n"
         for convention in context.architectural_conventions:
             markdown += f"  - {convention}\n"
     markdown += "\n"
@@ -206,4 +206,3 @@ if __name__ == "__main__":
     pr_url = "https://github.com/METResearchGroup/bluesky-research/pull/273"
     markdown_response = _create_pr_checklist_impl(pr_url, get_github_service(), get_llm_service())
     print(markdown_response)
-    breakpoint()
